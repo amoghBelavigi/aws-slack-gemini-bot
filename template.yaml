@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Slack → Lambda → LangGraph → Gemini → RDS (pgvector)
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.11
+    MemorySize: 512
+    Environment:
+      Variables:
+        SLACK_BOT_TOKEN: ""
+        SLACK_SIGNING_SECRET: ""
+        GOOGLE_API_KEY: ""
+        DATABASE_URL: ""
+        GEMINI_MODEL: "gemini-1.5-flash"
+        GEMINI_EMBED_MODEL: "text-embedding-004"
+        TOP_K: "5"
+        MIN_SCORE: "0.25"
+
+Resources:
+
+  SlackBotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: main.lambda_handler
+      CodeUri: lambda/
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-REPLACE
+        SubnetIds:
+          - subnet-REPLACE1
+          - subnet-REPLACE2
+      Events:
+        SlackEvents:
+          Type: HttpApi
+          Properties:
+            Path: /slack/events
+            Method: POST
+
+  IngestJob:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ingest.lambda_handler
+      CodeUri: lambda/
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-REPLACE
+        SubnetIds:
+          - subnet-REPLACE1
+          - subnet-REPLACE2
