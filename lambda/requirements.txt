@@ -1,0 +1,8 @@
+fastapi
+mangum
+sqlalchemy>=2.0
+psycopg[binary]
+pgvector
+google-generativeai
+langgraph
+requests
